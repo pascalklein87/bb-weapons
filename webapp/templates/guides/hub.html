@@ -42,7 +42,7 @@
 {% endblock %}
 
 {% block page_title %}
-{% set breadcrumbs = [{'url': '/', 'label': 'Home'}, {'label': 'Weapon Rankings'}] %}
+{% set breadcrumbs = [{'url': 'https://bloodngold.com/', 'label': 'Home'}, {'label': 'Weapon Rankings'}] %}
 {% include 'breadcrumb.html' with context %}
 <h1>Battle Brothers Weapon Rankings</h1>
 {% endblock %}
@@ -70,8 +70,8 @@
     {% for faction_name, enemies in factions %}
         <tr class="faction-spacer"><td colspan="5">{{ faction_name }}</td></tr>
         {% for e in enemies %}
-        <tr class="enemy-row" onclick="location.href='/best-weapon-against/{{ e.slug }}'">
-            <td class="enemy-name"><a href="/best-weapon-against/{{ e.slug }}">{{ e.name }}</a></td>
+        <tr class="enemy-row" onclick="location.href='/{{ e.slug }}'">
+            <td class="enemy-name"><a href="/{{ e.slug }}">{{ e.name }}</a></td>
             <td class="stats">{{ e.hitpoints }} HP | {{ e.body_armor }} body | {{ e.head_armor }} head</td>
             <td class="best">{% if e.best_ap_weapon %}{{ e.best_ap_weapon }} <span class="best-val">({{ e.best_ap }})</span>{% endif %}</td>
             <td class="best">{% if e.best_hits_weapon %}{{ e.best_hits_weapon }} <span class="best-val">({{ e.best_hits }})</span>{% endif %}</td>
@@ -83,8 +83,8 @@
 </table>
 
 <div class="hub-footer">
-    <p>Data generated with the <a href="/damage-calculator">Battle Brothers Damage Calculator</a> by HeyPashi.
-    <a href="/damage-calculator">Try any weapon/enemy combination in the calculator.</a></p>
+    <p>Data generated with the <a href="https://damage.bloodngold.com/">Battle Brothers Damage Calculator</a> by HeyPashi.
+    <a href="https://damage.bloodngold.com/">Try any weapon/enemy combination in the calculator.</a></p>
 </div>
 
 <p class="page-about">Built by Pascal Klein (<a href="/">HeyPashi</a>). Questions or feedback? <a href="mailto:heypashi@gmail.com">heypashi@gmail.com</a></p>

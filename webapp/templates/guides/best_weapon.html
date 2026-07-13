@@ -76,7 +76,7 @@
 {% endblock %}
 
 {% block page_title %}
-{% set breadcrumbs = [{'url': '/', 'label': 'Home'}, {'url': '/best-weapon-against', 'label': 'Weapon Rankings'}, {'label': enemy.name}] %}
+{% set breadcrumbs = [{'url': 'https://bloodngold.com/', 'label': 'Home'}, {'url': '/', 'label': 'Weapon Rankings'}, {'label': enemy.name}] %}
 {% include 'breadcrumb.html' with context %}
 <h1>Best Weapon against {{ enemy.name }}</h1>
 {% endblock %}
@@ -168,7 +168,7 @@
             {% if r.is_current %}
             <span style="color: #888; display: block; padding: 0.15rem 0;">{{ r.name }}</span>
             {% else %}
-            <a href="/best-weapon-against/{{ r.slug }}" style="color: #d4a843; display: block; padding: 0.15rem 0;">{{ r.name }}</a>
+            <a href="/{{ r.slug }}" style="color: #d4a843; display: block; padding: 0.15rem 0;">{{ r.name }}</a>
             {% endif %}
             {% endfor %}
         </div>
@@ -187,7 +187,7 @@
 </div>
 </div>
 
-<p class="page-about">Built by Pascal Klein (<a href="/">HeyPashi</a>). Questions or feedback? <a href="mailto:heypashi@gmail.com">heypashi@gmail.com</a></p>
+<p class="page-about">Built by Pascal Klein (<a href="https://bloodngold.com/">HeyPashi</a>). Questions or feedback? <a href="mailto:heypashi@gmail.com">heypashi@gmail.com</a></p>
 {% endblock %}
 
 {% block scripts %}
@@ -314,7 +314,7 @@ var allScenarios = {{ all_scenarios | tojson }};
             } else {
                 div.textContent = e.name;
                 div.addEventListener('click', function() {
-                    window.location.href = '/best-weapon-against/' + e.slug;
+                    window.location.href = '/' + e.slug;
                 });
             }
             options.appendChild(div);

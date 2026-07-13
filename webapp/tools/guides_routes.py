@@ -76,7 +76,7 @@ def _build_ranking_entry(r):
                   f"skill={r['skill_slug']}"]
     if mods:
         calc_parts.append(f"mods={mods}")
-    calc_url = 'https://damage.bloodngold.com/damage-calculator?' + '&'.join(calc_parts)
+    calc_url = 'https://damage.bloodngold.com/?' + '&'.join(calc_parts)
 
     total_fatigue = round(avg_hits * fatigue_per_hit)
 
@@ -309,7 +309,7 @@ def _load_hub_data():
     return ordered
 
 
-@guides_bp.route('/best-weapon-against')
+@guides_bp.route('/')
 def best_weapon_hub():
     factions = _load_hub_data()
     if not factions:
@@ -317,7 +317,7 @@ def best_weapon_hub():
     return render_template('guides/hub.html', factions=factions)
 
 
-@guides_bp.route('/best-weapon-against/<enemy_slug>')
+@guides_bp.route('/<enemy_slug>')
 def best_weapon_against(enemy_slug):
     enemy = _load_enemy(enemy_slug)
     if not enemy:
