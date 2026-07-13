@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Best Weapon against {{ enemy.name }} | Battle Brothers{% endblock %}
+
+{% block meta %}
+<meta name="description" content="All weapons ranked against {{ enemy.name }} by total Action Points to kill. Based on 20,000+ Monte Carlo simulations per weapon.">
+{% endblock %}
+
+{% block head %}
+<style>
+.enemy-bar {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 0.8rem 1.2rem;
+    margin: 0 0 1.5rem;
+}
+.enemy-stats { color: #999; font-size: 0.9rem; margin-top: 0.4rem; }
+.enemy-stats strong { color: #d4a843; }
+
+.rankings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+.rankings-table th, .rankings-table td { white-space: nowrap; }
+.rankings-table th {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 2px solid #444;
+    color: #ccc;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+.rankings-table th[data-col] { cursor: pointer; user-select: none; }
+.rankings-table th[data-col]:hover { color: #fff; }
+.rankings-table th[data-col]::after { content: ' \25B2'; font-size: 0.7rem; color: #444; }
+.rankings-table th.sort-active { color: #d4a843; }
+.rankings-table th.sort-active::after { color: #d4a843; }
+.rankings-table th.sort-active.sort-desc::after { content: ' \25BC'; }
+.rankings-table td {
+    padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid #222;
+}
+.rankings-table tr:hover { background: #1a1a1a; }
+.rankings-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.rankings-table .weapon-link { color: #d4a843; text-decoration: none; }
+.rankings-table .weapon-link:hover { text-decoration: underline; }
+.rankings-table .hand-col {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #888;
+    width: 2rem;
+}
+.rankings-table .skill-name {
+    color: #999;
+    font-size: 0.85rem;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.rankings-table .group-header {
+    text-align: center;
+    border-bottom: 1px solid #444;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #999;
+}
+.rankings-table .range-border { border-left: 2px solid #444; }
+@media (max-width: 991px) {
+    .hide-mobile { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block page_title %}
+{% set breadcrumbs = [{'url': '/', 'label': 'Home'}, {'url': '/best-weapon-against', 'label': 'Weapon Rankings'}, {'label': enemy.name}] %}
+{% include 'breadcrumb.html' with context %}
+<h1>Best Weapon against {{ enemy.name }}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="enemy-bar">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <div class="weapon-dropdown" id="enemy-dropdown-wrap" style="min-width: 220px;">
+                <div class="weapon-dropdown-selected" id="guide-enemy-selected">{{ enemy.name }}</div>
+                <div class="weapon-dropdown-panel" id="guide-enemy-panel" style="display:none">
+                    <input type="search" class="weapon-search" id="guide-enemy-search" placeholder="Search enemies...">
+                    <div class="weapon-options" id="guide-enemy-options"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-auto">
+            <span class="enemy-stats"><strong>{{ enemy.hitpoints }}</strong> HP, <strong>{% if enemy.body_armor_min != enemy.body_armor_max %}{{ enemy.body_armor_min }}-{{ enemy.body_armor_max }}{% else %}{{ enemy.body_armor_max }}{% endif %}</strong> Body Armor, <strong>{% if enemy.head_armor_min != enemy.head_armor_max %}{{ enemy.head_armor_min }}-{{ enemy.head_armor_max }}{% else %}{{ enemy.head_armor_max }}{% endif %}</strong> Head Armor{% if immunities %}, immune to {{ immunities | join(', ') }}{% endif %}</span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+<div class="col-lg-9">
+<table class="rankings-table" id="rankings">
+    <thead>
+        <tr>
+            <th rowspan="2" class="num hide-mobile">#</th>
+            <th rowspan="2">Weapon</th>
+            <th rowspan="2" style="text-align: center;" class="hide-mobile"></th>
+            <th rowspan="2" class="hide-mobile">Skill</th>
+            <th colspan="3" class="group-header range-border">Average</th>
+            <th colspan="2" class="group-header range-border hide-mobile">Range</th>
+        </tr>
+        <tr>
+            <th data-col="total_ap" class="num sort-active range-border">AP</th>
+            <th data-col="hits" class="num">Hits</th>
+            <th data-col="fatigue" class="num">Fat.</th>
+            <th class="num range-border hide-mobile">Hits</th>
+            <th class="num hide-mobile">Fat.</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in rankings %}
+        <tr>
+            <td class="num hide-mobile">{{ loop.index }}</td>
+            <td><a href="{{ r.calc_url }}" class="weapon-link" title="{{ r.weapon_name }}">{{ r.weapon_name | replace('Bundle of ', '') | replace('Two-Handed', 'Two-H.') | truncate(21, killwords=True, leeway=0) }}</a></td>
+            <td class="hand-col hide-mobile" data-type="{{ r.weapon_type }}">{{ r.weapon_type }} <span style="font-family: monospace; font-size: 0.85em;">{{ '%2d' | format(r.ap_cost) }}AP {{ '%2d' | format(r.fatigue_per_hit) }}F</span></td>
+            <td class="skill-name hide-mobile">{{ r.skill_name | replace(' (Mastery)', '') }}</td>
+            <td class="num range-border"><strong>{{ r.total_ap }}</strong></td>
+            <td class="num">{{ r.avg_hits }}</td>
+            <td class="num">{{ r.total_fatigue }}</td>
+            <td class="num range-border hide-mobile">{{ r.min_hits }}-{{ r.max_hits }}</td>
+            <td class="num hide-mobile">{{ r.fat_min }}-{{ r.fat_max }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div class="col-lg-3">
+    <div style="font-size: 0.85rem; color: #999; line-height: 1.7;">
+
+        <div class="panel" style="margin-bottom: 0.8rem;">
+            <h3 style="font-size: 0.9rem; color: #ccc; margin: 0 0 0.5rem;">Best Weapon</h3>
+            {% if top_by_hits.weapon_slug == top_overall.weapon_slug %}
+            <p style="margin: 0;"><strong style="color: #d4a843;">{{ top_overall.weapon_name }}</strong> can kill {{ enemy.name }} within <strong style="color: #d4a843;">{{ top_overall.total_ap }}&nbsp;AP</strong> and <strong style="color: #d4a843;">{{ top_overall.avg_hits }}&nbsp;Hits</strong>.</p>
+            {% else %}
+            <p style="margin: 0;"><strong style="color: #d4a843;">{{ top_overall.weapon_name }}</strong> can kill {{ enemy.name }} within <strong style="color: #d4a843;">{{ top_overall.total_ap }}&nbsp;AP</strong> and {{ top_overall.avg_hits }}&nbsp;Hits.</p>
+            <p style="margin: 0.4rem 0 0;"><strong style="color: #d4a843;">{{ top_by_hits.weapon_name }}</strong> can kill {{ enemy.name }} within {{ top_by_hits.total_ap }}&nbsp;AP and <strong style="color: #d4a843;">{{ top_by_hits.avg_hits }}&nbsp;Hits</strong>.</p>
+            {% endif %}
+        </div>
+
+        <div class="panel" style="margin-bottom: 0.8rem;">
+            <h3 style="font-size: 0.9rem; color: #ccc; margin: 0 0 0.5rem;">Filter</h3>
+            <div style="display: flex; gap: 1rem;">
+                <label style="cursor: pointer;"><input type="checkbox" class="type-filter" value="1H" checked style="margin-right: 0.3rem;">1H</label>
+                <label style="cursor: pointer;"><input type="checkbox" class="type-filter" value="2H" checked style="margin-right: 0.3rem;">2H</label>
+                <label style="cursor: pointer;"><input type="checkbox" class="type-filter" value="R" checked style="margin-right: 0.3rem;">Ranged</label>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 0.3rem;">
+                <label style="cursor: pointer;"><input type="checkbox" id="duelist-toggle" checked style="margin-right: 0.3rem;">1H have Duelist</label>
+            </div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 0.8rem;">
+            <h3 style="font-size: 0.9rem; color: #ccc; margin: 0 0 0.5rem;">{{ faction }} Faction</h3>
+            {% for r in related %}
+            {% if r.is_current %}
+            <span style="color: #888; display: block; padding: 0.15rem 0;">{{ r.name }}</span>
+            {% else %}
+            <a href="/best-weapon-against/{{ r.slug }}" style="color: #d4a843; display: block; padding: 0.15rem 0;">{{ r.name }}</a>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="panel" style="margin-bottom: 0.8rem;">
+            <h3 style="font-size: 0.9rem; color: #ccc; margin: 0 0 0.5rem;">Simulation</h3>
+            <p style="margin: 0;">We ran 20,000 simulations. Each time the armor loadout and damage rolls are randomly picked.</p>
+            <p style="margin: 0.4rem 0 0;">Every weapon uses the default skill, except Qatal Dagger (Deathblow) and Dagger (Puncture). Everyone has Mastery. 1H have Double Grip. Throwing at 2 tiles range.</p>
+            {% if perks %}
+            <p style="margin: 0.4rem 0 0;">{{ enemy.name }} has {% for perk in perks %}{{ perk }}{% if not loop.last %}, {% endif %}{% endfor %}. All perks are factored in.</p>
+            {% endif %}
+            <p style="margin: 0.6rem 0 0;">For custom analysis:<br><a href="{{ top_overall.calc_url }}" style="color: #d4a843;">Open in Damage Calculator</a></p>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<p class="page-about">Built by Pascal Klein (<a href="/">HeyPashi</a>). Questions or feedback? <a href="mailto:heypashi@gmail.com">heypashi@gmail.com</a></p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Sort table
+(function() {
+    var table = document.getElementById('rankings');
+    if (!table) return;
+    var headers = table.querySelectorAll('th');
+    var tbody = table.querySelector('tbody');
+    var currentCol = 'total_ap';
+    var ascending = true;
+    var colMap = {total_ap: 4, hits: 5, fatigue: 6};
+
+    function sortTable(col) {
+        if (col === currentCol) ascending = !ascending;
+        else { currentCol = col; ascending = true; }
+
+        headers.forEach(function(h) {
+            h.classList.remove('sort-active', 'sort-desc');
+            if (h.dataset.col === col) {
+                h.classList.add('sort-active');
+                if (!ascending) h.classList.add('sort-desc');
+            }
+        });
+
+        var rows = Array.from(tbody.querySelectorAll('tr'));
+        var colIdx = colMap[col];
+        rows.sort(function(a, b) {
+            var av = parseFloat(a.cells[colIdx].textContent) || 0;
+            var bv = parseFloat(b.cells[colIdx].textContent) || 0;
+            return ascending ? av - bv : bv - av;
+        });
+        rows.forEach(function(row, i) {
+            row.cells[0].textContent = i + 1;
+            tbody.appendChild(row);
+        });
+    }
+
+    headers.forEach(function(h) {
+        if (!h.dataset.col) return;
+        h.addEventListener('click', function() { sortTable(h.dataset.col); });
+    });
+})();
+
+// Scenario data
+var allScenarios = {{ all_scenarios | tojson }};
+
+// Scenario switcher + type filter
+(function() {
+    var duelistToggle = document.getElementById('duelist-toggle');
+    var tbody = document.querySelector('#rankings tbody');
+    var typeFilters = document.querySelectorAll('.type-filter');
+
+    function getScenario() {
+        return duelistToggle.checked ? 'dg_duelist' : 'dg';
+    }
+
+    function getActiveTypes() {
+        var active = {};
+        typeFilters.forEach(function(cb) { active[cb.value] = cb.checked; });
+        return active;
+    }
+
+    function rebuildTable() {
+        var data = allScenarios[getScenario()];
+        if (!data) return;
+        var active = getActiveTypes();
+        tbody.innerHTML = '';
+        var rank = 0;
+        data.forEach(function(r) {
+            if (!active[r.weapon_type]) return;
+            rank++;
+            var name = r.weapon_name.replace('Bundle of ', '').replace('Two-Handed', 'Two-H.');
+            if (name.length > 20) name = name.substring(0, 18) + '...';
+            var skill = r.skill_name.replace(' (Mastery)', '');
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td class="num hide-mobile">' + rank + '</td>' +
+                '<td><a href="' + r.calc_url + '" class="weapon-link" title="' + r.weapon_name + '">' + name + '</a></td>' +
+                '<td class="hand-col hide-mobile" data-type="' + r.weapon_type + '">' + r.weapon_type + ' <span style="font-family: monospace; font-size: 0.85em;">' + String(r.ap_cost).padStart(2) + 'AP ' + String(r.fatigue_per_hit).padStart(2) + 'F</span></td>' +
+                '<td class="skill-name hide-mobile">' + skill + '</td>' +
+                '<td class="num range-border"><strong>' + r.total_ap + '</strong></td>' +
+                '<td class="num">' + r.avg_hits + '</td>' +
+                '<td class="num">' + r.total_fatigue + '</td>' +
+                '<td class="num range-border hide-mobile">' + r.min_hits + '-' + r.max_hits + '</td>' +
+                '<td class="num hide-mobile">' + r.fat_min + '-' + r.fat_max + '</td>';
+            tbody.appendChild(tr);
+        });
+    }
+
+    duelistToggle.addEventListener('change', rebuildTable);
+    typeFilters.forEach(function(cb) {
+        cb.addEventListener('change', rebuildTable);
+    });
+})();
+
+// Enemy switcher (custom dropdown matching calculator style)
+(function() {
+    var enemies = {{ all_enemies | tojson }};
+    var currentSlug = '{{ enemy_slug }}';
+    var selected = document.getElementById('guide-enemy-selected');
+    var panel = document.getElementById('guide-enemy-panel');
+    var search = document.getElementById('guide-enemy-search');
+    var options = document.getElementById('guide-enemy-options');
+
+    function render(filtered) {
+        options.innerHTML = '';
+        var lastFaction = '';
+        filtered.forEach(function(e) {
+            if (e.faction !== lastFaction) {
+                var header = document.createElement('div');
+                header.style.cssText = 'color:#666;font-size:0.75rem;padding:0.4rem 0.5rem 0.2rem;text-transform:uppercase;letter-spacing:0.05em;';
+                header.textContent = e.faction;
+                options.appendChild(header);
+                lastFaction = e.faction;
+            }
+            var div = document.createElement('div');
+            div.className = 'weapon-option';
+            if (e.slug === currentSlug) {
+                div.style.color = '#888';
+                div.style.cursor = 'default';
+                div.textContent = e.name;
+            } else {
+                div.textContent = e.name;
+                div.addEventListener('click', function() {
+                    window.location.href = '/best-weapon-against/' + e.slug;
+                });
+            }
+            options.appendChild(div);
+        });
+    }
+
+    selected.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var visible = panel.style.display !== 'none';
+        panel.style.display = visible ? 'none' : '';
+        if (!visible) {
+            search.value = '';
+            render(enemies);
+            search.focus();
+        }
+    });
+
+    search.addEventListener('input', function() {
+        var q = search.value.toLowerCase();
+        render(q ? enemies.filter(function(e) { return e.name.toLowerCase().indexOf(q) !== -1; }) : enemies);
+    });
+
+    document.addEventListener('click', function(ev) {
+        if (!panel.contains(ev.target) && ev.target !== selected) {
+            panel.style.display = 'none';
+        }
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Battle Brothers Weapon Guide: Best Weapons by Enemy | Ranked by Kill Speed{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Data-driven weapon rankings for the most common enemies in Battle Brothers. All 115 weapons ranked by AP to kill, based on 20,000+ Monte Carlo simulations per matchup.">
+{% endblock %}
+
+{% block head %}
+<style>
+.hub-intro { color: #ccc; line-height: 1.6; margin-bottom: 1.5rem; }
+
+.hub-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.hub-table th {
+    text-align: left;
+    color: #888;
+    font-weight: normal;
+    padding: 0.3rem 0.8rem;
+    border-bottom: 1px solid #444;
+}
+.hub-table td { padding: 0.4rem 0.8rem; }
+.hub-table tr.enemy-row { border-bottom: 1px solid #222; cursor: pointer; text-decoration: none; }
+.hub-table tr.enemy-row:hover { background: #1a1a1a; }
+.hub-table tr.enemy-row td a { color: inherit; text-decoration: none; }
+.hub-table .enemy-name { color: #e0e0e0; font-weight: bold; }
+.hub-table .enemy-name a { color: inherit; text-decoration: none; }
+.hub-table .enemy-name a:hover { color: #d4a843; }
+.hub-table .stats { color: #888; }
+.hub-table .best { color: #d4a843; }
+.hub-table .best-val { color: #888; font-size: 0.8rem; }
+.hub-table tr.faction-spacer td { padding: 0.8rem 0 0.2rem; color: #555; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.hub-footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+    font-size: 0.9rem;
+    color: #888;
+}
+.hub-footer a { color: #d4a843; }
+</style>
+{% endblock %}
+
+{% block page_title %}
+{% set breadcrumbs = [{'url': '/', 'label': 'Home'}, {'label': 'Weapon Rankings'}] %}
+{% include 'breadcrumb.html' with context %}
+<h1>Battle Brothers Weapon Rankings</h1>
+{% endblock %}
+
+{% block content %}
+
+<p class="hub-intro">
+    Every weapon in Battle Brothers ranked by kill speed against the most common enemies.
+    All rankings are based on 20,000+ Monte Carlo simulations per weapon.
+    Weapon Mastery assumed. One-handed weapons use Double Grip and Duelist.
+    Click any enemy to see the full weapon ranking table.
+</p>
+
+<table class="hub-table">
+    <thead>
+        <tr>
+            <th>Enemy</th>
+            <th>HP and Armor Loadout</th>
+            <th>Fewest Action Points</th>
+            <th>Fewest Hits</th>
+            <th>Lowest Fatigue</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for faction_name, enemies in factions %}
+        <tr class="faction-spacer"><td colspan="5">{{ faction_name }}</td></tr>
+        {% for e in enemies %}
+        <tr class="enemy-row" onclick="location.href='/best-weapon-against/{{ e.slug }}'">
+            <td class="enemy-name"><a href="/best-weapon-against/{{ e.slug }}">{{ e.name }}</a></td>
+            <td class="stats">{{ e.hitpoints }} HP | {{ e.body_armor }} body | {{ e.head_armor }} head</td>
+            <td class="best">{% if e.best_ap_weapon %}{{ e.best_ap_weapon }} <span class="best-val">({{ e.best_ap }})</span>{% endif %}</td>
+            <td class="best">{% if e.best_hits_weapon %}{{ e.best_hits_weapon }} <span class="best-val">({{ e.best_hits }})</span>{% endif %}</td>
+            <td class="best">{% if e.best_fat_weapon %}{{ e.best_fat_weapon }} <span class="best-val">({{ e.best_fat }})</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="hub-footer">
+    <p>Data generated with the <a href="/damage-calculator">Battle Brothers Damage Calculator</a> by HeyPashi.
+    <a href="/damage-calculator">Try any weapon/enemy combination in the calculator.</a></p>
+</div>
+
+<p class="page-about">Built by Pascal Klein (<a href="/">HeyPashi</a>). Questions or feedback? <a href="mailto:heypashi@gmail.com">heypashi@gmail.com</a></p>
+{% endblock %}
