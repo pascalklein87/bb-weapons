@@ -1,3 +1,4 @@
+import os
 import time
 
 from flask import Flask, redirect, send_from_directory
@@ -10,6 +11,14 @@ def create_app():
     @app.context_processor
     def inject_cache_bust():
         return {'cache_bust': int(time.time())}
+
+    @app.context_processor
+    def inject_tabs_js_url():
+        # Cross-site vertical tab bar, hosted once at bloodngold.com/static/tabs.js.
+        # Weapons is not itself a tab, so the bar shows with none selected.
+        # Local dev overrides TABS_JS_URL to the local bng-home dev server.
+        return {'tabs_js_url': os.environ.get(
+            'TABS_JS_URL', 'https://bloodngold.com/static/tabs.js')}
 
     # Hub at / and per-enemy rankings at /<enemy_slug> (guides_bp has no prefix).
     from tools.guides_routes import guides_bp

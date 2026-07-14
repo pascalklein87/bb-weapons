@@ -37,5 +37,7 @@
     </footer>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     {% block scripts %}{% endblock %}
+    {# Cross-site vertical tab bar. Weapons is not a tab, so none is selected. #}
+    <script defer src="{{ tabs_js_url }}?v={{ cache_bust }}"></script>
 </body>
 </html>
