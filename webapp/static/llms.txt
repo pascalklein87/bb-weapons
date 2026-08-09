@@ -1,8 +1,10 @@
 # Battle Brothers Weapon Rankings
 
-> Every Battle Brothers weapon ranked by Action Points to kill each common enemy.
+> Every Battle Brothers weapon ranked by how fast it kills each common enemy.
 
-The rankings order every Battle Brothers weapon by the average Action Points needed to kill each of the most common enemies, computed from Monte Carlo combat simulations. Not affiliated with or endorsed by Overhype Studios.
+Every weapon in Battle Brothers is ranked against the most common enemies by the Action Points needed to kill, the number of hits to kill, and the fatigue spent. Rankings come from 20,000+ Monte Carlo combat simulations per weapon (generated with the damage calculator), with Weapon Mastery assumed and one-handed weapons using Double Grip and Duelist. Enemies are grouped by faction and listed with their HP and body/head armor; open any enemy for its full weapon ranking table.
+
+Not affiliated with or endorsed by Overhype Studios.
 
 ## Pages
-- https://weapons.bloodngold.com/: weapon rankings hub.
+- https://weapons.bloodngold.com/: weapon rankings hub, one ranking table per enemy.
