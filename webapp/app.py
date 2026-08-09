@@ -33,6 +33,10 @@ def create_app():
         return send_from_directory(app.static_folder, 'sitemap.xml',
                                    mimetype='application/xml')
 
+    @app.route('/llms.txt')
+    def llms_txt():
+        return send_from_directory(app.static_folder, 'llms.txt', mimetype='text/plain')
+
     # Legacy paths from when rankings lived at bloodngold.com/best-weapon-against.
     @app.route('/best-weapon-against')
     def legacy_hub():
